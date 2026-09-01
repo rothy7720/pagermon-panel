@@ -1,0 +1,14 @@
+{
+  "name": "pagermon-panel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local web control panel for PagerMon decoder clients running under pm2",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {}
+}

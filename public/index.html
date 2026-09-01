@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>PagerMon Panel</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true"></span>
+    <div>
+      <h1>PagerMon Panel</h1>
+      <div class="host" id="host">—</div>
+    </div>
+  </div>
+  <nav class="nav">
+    <button class="tab active" data-view="dashboard">Dashboard</button>
+    <button class="tab" data-view="settings">Settings</button>
+  </nav>
+  <div class="topRight">
+    <span class="pill" id="overall"><span class="dot"></span><span id="overallText">connecting…</span></span>
+    <button id="rebootBtn" class="btn danger">Reboot PC</button>
+  </div>
+</header>
+
+<main>
+  <div id="pm2Warn" class="banner hidden"></div>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section id="view-dashboard" class="view">
+    <div id="decoders" class="sections"></div>
+
+    <div class="panel test">
+      <h2>Send a test page</h2>
+      <p class="muted">Injected straight into the selected decoder's <code>reader.js</code> as POCSAG512 / Function 3. It forwards to the PagerMon server exactly like a real page.</p>
+      <form id="testForm">
+        <div class="testGrid">
+          <label>From decoder
+            <select id="tDecoder" required></select>
+          </label>
+          <label>Address
+            <input id="tAddress" inputmode="numeric" placeholder="1213680" required>
+          </label>
+        </div>
+        <label>Message
+          <textarea id="tMessage" rows="4" placeholder="Type the page text…"></textarea>
+        </label>
+        <div class="testActions">
+          <button type="submit" class="btn primary">Send test page</button>
+        </div>
+        <pre id="testResult" class="result hidden"></pre>
+      </form>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section id="view-settings" class="view hidden">
+    <div class="panel">
+      <h2>Decoders</h2>
+      <p class="muted">One decoder = one <code>reader.js</code> process under pm2. Give it a label and the pm2 name (or id) so the panel can watch and control it.</p>
+      <div id="decodersEditor"></div>
+      <button id="addDecoderBtn" class="btn">+ Add decoder</button>
+    </div>
+
+    <div class="panel">
+      <h2>General</h2>
+      <div class="formGrid">
+        <label>Listen address (bind)
+          <input id="sBind" placeholder="0.0.0.0">
+          <small>Restart required to apply.</small>
+        </label>
+        <label>Port
+          <input id="sPort" inputmode="numeric" placeholder="8080">
+          <small>Restart required to apply.</small>
+        </label>
+        <label>pm2 command
+          <input id="sPm2Bin" placeholder="pm2">
+          <small>Full path if not on PATH. JSON array allowed, e.g. ["sudo","pm2"].</small>
+        </label>
+        <label>Reboot command
+          <input id="sReboot" placeholder="sudo /usr/sbin/reboot">
+        </label>
+        <label>Pages kept per decoder
+          <input id="sPages" inputmode="numeric" placeholder="20">
+        </label>
+        <label>Log tail size (bytes)
+          <input id="sTail" inputmode="numeric" placeholder="200000">
+        </label>
+        <label class="wide">Log parse override (regex, advanced — leave blank normally)
+          <input id="sLogPattern" placeholder="named groups: baud, addr, func, kind, msg">
+        </label>
+      </div>
+    </div>
+
+    <div class="saveBar">
+      <button id="saveBtn" class="btn primary">Save settings</button>
+      <span id="saveMsg" class="muted"></span>
+    </div>
+  </section>
+</main>
+
+<footer id="foot">—</footer>
+
+<datalist id="pm2Options"></datalist>
+
+<script src="/app.js"></script>
+</body>
+</html>

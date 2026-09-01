@@ -1,0 +1,36 @@
+{
+  "port": 8090,
+  "bind": "127.0.0.1",
+  "pm2Bin": [
+    "node",
+    "./dev/fake-pm2.js"
+  ],
+  "rebootCommand": "echo would-reboot-now",
+  "logTailBytes": 200000,
+  "pagesPerProcess": 20,
+  "logPattern": null,
+  "test": {
+    "baud": 512,
+    "function": 3
+  },
+  "decoders": [
+    {
+      "id": "eas1",
+      "label": "EAS Channel 1",
+      "staleMinutes": 45,
+      "pm2Ref": "pagermon-eas1",
+      "cwd": "./dev",
+      "readerCmd": "node ./fake-reader.js",
+      "configFile": "./dev/reader-eas1.sh"
+    },
+    {
+      "id": "eas2",
+      "label": "RFS LW",
+      "staleMinutes": 30,
+      "pm2Ref": "pagermon-eas2",
+      "cwd": "./dev",
+      "readerCmd": "node ./fake-reader.js",
+      "configFile": "./dev/reader-eas2.sh"
+    }
+  ]
+}

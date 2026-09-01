@@ -1,0 +1,34 @@
+{
+  "port": 8080,
+  "bind": "0.0.0.0",
+
+  "pm2Bin": "pm2",
+  "rebootCommand": "sudo /usr/sbin/reboot",
+
+  "logTailBytes": 200000,
+  "pagesPerProcess": 20,
+  "logPattern": null,
+
+  "test": { "baud": 512, "function": 3 },
+
+  "decoders": [
+    {
+      "id": "eas1",
+      "label": "EAS Channel 1",
+      "staleMinutes": 30,
+      "pm2Ref": "pagermon-eas1",
+      "cwd": "/home/pager/pagermon/client",
+      "readerCmd": "node ./reader.js",
+      "configFile": "/home/pager/pagermon/client/reader.sh"
+    },
+    {
+      "id": "eas2",
+      "label": "EAS Channel 2",
+      "staleMinutes": 30,
+      "pm2Ref": "pagermon-eas2",
+      "cwd": "/home/pager/pagermon-eas2/client",
+      "readerCmd": "node ./reader.js",
+      "configFile": "/home/pager/pagermon-eas2/client/reader.sh"
+    }
+  ]
+}

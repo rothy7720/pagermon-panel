@@ -1,0 +1,9 @@
+node_modules/
+config.json
+*.log
+!dev/logs/*.log
+.DS_Store
+dev/fake-pm2-state.json
+
+*.bak
+*.tmp
