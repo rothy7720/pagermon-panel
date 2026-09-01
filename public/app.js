@@ -360,16 +360,20 @@ function decoderEditor(d, i) {
   wrap.append(top);
 
   const row = el('div', 'procRow');
-  row.append(field('pm2 name / id', d.pm2Ref, (v) => { d.pm2Ref = v; }, { list: 'pm2Options', placeholder: 'pagermon-eas1' }));
-  row.append(field('Working dir (has reader.js)', d.cwd, (v) => { d.cwd = v; }, { placeholder: '/home/pager/pagermon/client' }));
+  row.append(field('pm2 name / id', d.pm2Ref, (v) => { d.pm2Ref = v; }, { list: 'pm2Options', placeholder: 'EAS1' }));
+  row.append(field('Working dir (has reader.js)', d.cwd, (v) => { d.cwd = v; }, { placeholder: '/home/ben/pagermon/client' }));
   row.append(field('Reader command', d.readerCmd, (v) => { d.readerCmd = v; }, { placeholder: 'node ./reader.js' }));
-  row.append(field('Config file (reader.sh — holds frequency)', d.configFile, (v) => { d.configFile = v; }, { placeholder: '/home/pager/pagermon/client/reader.sh' }));
+  row.append(field('Config file (reader.sh — holds frequency)', d.configFile, (v) => { d.configFile = v; }, { placeholder: '/home/ben/pagermon/client/reader.sh' }));
   wrap.append(row);
+
+  const row2 = el('div', 'procRow2');
+  row2.append(field('Page log override (optional — leave blank to use the pm2 stdout log)', d.logFile, (v) => { d.logFile = v; }, { placeholder: '/home/ben/pagermon/client/decoded.log' }));
+  wrap.append(row2);
   return wrap;
 }
 
 $('#addDecoderBtn').addEventListener('click', () => {
-  draft.decoders.push({ label: `Decoder ${draft.decoders.length + 1}`, staleMinutes: 30, pm2Ref: '', cwd: '', readerCmd: 'node ./reader.js', configFile: '' });
+  draft.decoders.push({ label: `Decoder ${draft.decoders.length + 1}`, staleMinutes: 30, pm2Ref: '', cwd: '', readerCmd: 'node ./reader.js', configFile: '', logFile: '' });
   renderDecodersEditor();
 });
 

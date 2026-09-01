@@ -2,7 +2,8 @@
 
 A local web control panel for the **decoder / forwarder** end of a PagerMon
 setup — the remote site that receives POCSAG and forwards it to the PagerMon
-server. Zero npm dependencies, just Node 18+.
+server. Zero npm dependencies. Runs on Node 12+ (Node 12 is EOL — upgrade when you
+can, but the panel does not require it).
 
 This has nothing to do with the PagerMon server. It only watches and controls the
 `reader.js` client processes running here under **pm2**.
@@ -85,16 +86,20 @@ Most of this is editable from the Settings page — you rarely hand-edit it.
       "id": "eas1",
       "label": "EAS Channel 1",
       "staleMinutes": 30,            // light goes orange after this much silence
-      "pm2Ref": "pagermon-eas1",     // pm2 process name OR numeric id
-      "cwd": "/home/pager/pagermon/client",              // dir containing reader.js
+      "pm2Ref": "EAS1",              // pm2 process name OR numeric id
+      "cwd": "/home/ben/pagermon/client",                // dir containing reader.js
       "readerCmd": "node ./reader.js",
-      "configFile": "/home/pager/pagermon/client/reader.sh"  // holds the -f frequency
+      "configFile": "/home/ben/pagermon/client/reader.sh",  // holds the -f frequency
+      "logFile": ""                 // optional: read pages from here instead of the pm2 stdout log
     }
   ]
 }
 ```
 
 The pm2 log path for each decoder is discovered automatically from `pm2 jlist`.
+Set **`logFile`** only if that's not where the decoded pages land — e.g. two pm2
+apps whose scripts share a name write to the same log, or `reader.js` is silent
+and you `tee` the multimon-ng output to a file instead.
 
 ### Frequency editing
 

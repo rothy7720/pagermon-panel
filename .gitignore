@@ -7,3 +7,5 @@ dev/fake-pm2-state.json
 
 *.bak
 *.tmp
+dev/srv.out
+dev/srv.err

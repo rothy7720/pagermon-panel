@@ -16,19 +16,21 @@
       "id": "eas1",
       "label": "EAS Channel 1",
       "staleMinutes": 30,
-      "pm2Ref": "pagermon-eas1",
-      "cwd": "/home/pager/pagermon/client",
+      "pm2Ref": "EAS1",
+      "cwd": "/home/ben/pagermon/client",
       "readerCmd": "node ./reader.js",
-      "configFile": "/home/pager/pagermon/client/reader.sh"
+      "configFile": "/home/ben/pagermon/client/reader.sh",
+      "logFile": ""
     },
     {
-      "id": "eas2",
-      "label": "EAS Channel 2",
+      "id": "rfs",
+      "label": "RFS Lower Western",
       "staleMinutes": 30,
-      "pm2Ref": "pagermon-eas2",
-      "cwd": "/home/pager/pagermon-eas2/client",
+      "pm2Ref": "RFS_LW",
+      "cwd": "/home/ben/pagermon/clientrfs",
       "readerCmd": "node ./reader.js",
-      "configFile": "/home/pager/pagermon-eas2/client/reader.sh"
+      "configFile": "/home/ben/pagermon/clientrfs/reader.sh",
+      "logFile": ""
     }
   ]
 }

@@ -90,10 +90,11 @@ async function buildState() {
   const decoders = [];
   for (const d of c.decoders) {
     const st = pm2Status[d.pm2Ref] || { status: d.pm2Ref ? 'unknown' : 'unconfigured' };
+    const logPath = d.logFile || st.outLogPath;
     let pages = [];
     let pagesError = null;
     try {
-      const text = await tailBytes(st.outLogPath, c.logTailBytes);
+      const text = await tailBytes(logPath, c.logTailBytes);
       pages = recentPages(text, c.pagesPerProcess, { logPattern: c.logPattern });
     } catch (e) {
       pagesError = e.message || String(e);
@@ -113,6 +114,8 @@ async function buildState() {
       pm2Ref: d.pm2Ref,
       cwd: d.cwd,
       configFile: d.configFile || null,
+      logFile: d.logFile || null,
+      logPath, // what pages were actually read from
       frequency, // { token, pretty, method } | { error } | null
       process: st,
       health: d.pm2Ref ? healthOf(st.status, lastPageAt, d.staleMinutes) : 'unconfigured',
@@ -178,7 +181,7 @@ const server = http.createServer(async (req, res) => {
 
       if (action === 'pages' && method === 'GET') {
         const st = (await pm2.statusFor(c.pm2Bin, [d.pm2Ref]))[d.pm2Ref];
-        const text = await tailBytes(st.outLogPath, c.logTailBytes);
+        const text = await tailBytes(d.logFile || st.outLogPath, c.logTailBytes);
         const limit = Math.min(Number(url.searchParams.get('limit')) || c.pagesPerProcess, 200);
         return send(res, 200, { pages: recentPages(text, limit, { logPattern: c.logPattern }) });
       }
