@@ -3,6 +3,7 @@
   "bind": "0.0.0.0",
 
   "pm2Bin": "pm2",
+  "rtlTestBin": "rtl_test",
   "rebootCommand": "sudo /usr/sbin/reboot",
 
   "logTailBytes": 200000,

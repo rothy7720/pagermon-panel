@@ -167,7 +167,18 @@ main { max-width: 1180px; margin: 0 auto; padding: 20px; }
 .freqrow .fmeth { color: var(--dim); font-size: 11px; }
 .freqrow .fmuted { color: var(--dim); font-style: italic; }
 .freqrow .feditor { display: inline-flex; gap: 6px; align-items: center; }
-.freqrow input { padding: 4px 7px; font-size: 12.5px; width: 8.5em; }
+.freqrow input, .freqrow select { padding: 4px 7px; font-size: 12.5px; max-width: 16em; }
+.freqrow input { width: 8.5em; }
+
+.rtltbl { display: flex; flex-direction: column; gap: 6px; }
+.rtlrow { display: grid; grid-template-columns: 3em 1fr auto auto; gap: 12px; align-items: baseline; font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.rtlrow:last-child { border-bottom: 0; }
+.rtlidx { font-weight: 700; color: var(--accent); }
+.rtlname { color: var(--text); }
+.rtlsn { color: var(--dim); font-size: 11.5px; font-family: ui-monospace, Menlo, Consolas, monospace; }
+.rtluse { color: var(--active); font-size: 12px; }
+.rtluse.free { color: var(--dim); font-style: italic; }
+.rtlwarn { background: color-mix(in srgb, var(--idle) 15%, transparent); border: 1px solid color-mix(in srgb, var(--idle) 55%, transparent); color: var(--idle); padding: 8px 10px; border-radius: 8px; font-size: 12px; margin-bottom: 10px; }
 
 .pstats { display: flex; flex-wrap: wrap; gap: 3px 14px; padding: 8px 14px 10px; font-size: 11.5px; color: var(--dim); }
 .pstats b { color: var(--text); font-weight: 600; }

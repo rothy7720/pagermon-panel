@@ -19,6 +19,10 @@ This has nothing to do with the PagerMon server. It only watches and controls th
 - **Change a decoder's frequency** right from its card — edits the `-f` value (or
   a `FREQ=` line) in that decoder's `reader.sh`, keeps a `.bak`, and restarts the
   process so it takes effect.
+- **RTL-SDR devices** — lists every dongle `rtl_test` sees (index, model, serial)
+  and which decoder is using each. Pick a decoder's dongle from its card (edits
+  the `-d` value in `reader.sh` and restarts). Warns if two dongles share a
+  serial, since then `-d <index>` order isn't stable across replug/reboot.
 - **Reboot the PC** (configurable command, typed `REBOOT` confirmation).
 - **Send a test page** — address + message box, always sent as POCSAG512 /
   Function 3, piped straight into the chosen decoder's `reader.js` on stdin
@@ -76,6 +80,7 @@ Most of this is editable from the Settings page — you rarely hand-edit it.
   "port": 8080,
   "bind": "0.0.0.0",                 // 127.0.0.1 = box-only
   "pm2Bin": "pm2",                   // path, or an array e.g. ["sudo","pm2"]
+  "rtlTestBin": "rtl_test",          // used to enumerate RTL-SDR dongles
   "rebootCommand": "sudo /usr/sbin/reboot",
   "logTailBytes": 200000,
   "pagesPerProcess": 20,
@@ -113,6 +118,23 @@ A bare number under 10000 you type in the box is taken as MHz (`148.5375` →
 `148.5375M`). The original file is copied to `reader.sh.bak` before the change,
 and the pm2 process is restarted so it re-tunes.
 
+### SDR device selection
+
+Same mechanism: the card shows which dongle the decoder uses (`-d` on the
+`rtl_fm` line, or `#0` if absent), and the picker rewrites it. The **RTL-SDR
+devices** panel lists what `rtl_test` finds and which decoder claims each.
+
+If two dongles report the same serial (common — they ship as `00000001`), give
+them unique ones so `-d` is stable:
+
+```bash
+# with the decoders stopped:  pm2 stop EAS1 RFS_LW
+rtl_eeprom -d 0 -s EAS_01
+rtl_eeprom -d 1 -s RFS_01
+```
+
+then reference them as `-d EAS_01` etc. (the panel accepts a serial in the box).
+
 ## Tuning the page parser
 
 The panel scrapes decoded frames from each decoder's stdout log with built-in
@@ -137,6 +159,8 @@ and set `logPattern` in the Settings page (a regex with named groups `baud`,
 | POST | `/api/decoder/:id/start\|stop\|restart` | | pm2 control for one decoder |
 | GET  | `/api/decoder/:id/pages?limit=20` | | parsed pages for one decoder |
 | POST | `/api/decoder/:id/frequency` | `{frequency, restart?}` | edits `reader.sh`, restarts the decoder |
+| POST | `/api/decoder/:id/device` | `{device, restart?}` | sets the `-d` dongle in `reader.sh`, restarts |
+| GET  | `/api/rtl/devices` | | RTL-SDR dongles per `rtl_test` |
 | POST | `/api/test` | `{decoderId, address, message}` | POCSAG512/F3 into that decoder's reader.js |
 | POST | `/api/reboot` | `{confirm:"REBOOT"}` | runs `rebootCommand` |
 

@@ -5,6 +5,10 @@
     "node",
     "./dev/fake-pm2.js"
   ],
+  "rtlTestBin": [
+    "node",
+    "./dev/fake-rtl-test.js"
+  ],
   "rebootCommand": "echo would-reboot-now",
   "logTailBytes": 200000,
   "pagesPerProcess": 20,

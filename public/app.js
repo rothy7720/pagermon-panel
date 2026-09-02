@@ -45,7 +45,8 @@ const HEALTH_RANK = { error: 4, idle: 3, unknown: 2, unconfigured: 2, off: 1, ac
 // ---------------------------------------------------------------- views -----
 let pollTimer = null;
 let currentView = 'dashboard';
-let freqEditOpen = false; // pause a card's re-render while its frequency editor is open
+let cardEditOpen = false; // pause a card's re-render while one of its inline editors is open
+let rtlDevices = [];      // last-seen RTL-SDR device list, for the per-card picker
 
 function switchView(name) {
   currentView = name;
@@ -82,13 +83,13 @@ function freqRow(dec) {
   form.append(input, apply, cancel);
   row.append(form);
 
-  edit.onclick = () => { edit.classList.add('hidden'); form.classList.remove('hidden'); input.focus(); freqEditOpen = true; };
-  cancel.onclick = () => { form.classList.add('hidden'); edit.classList.remove('hidden'); freqEditOpen = false; };
+  edit.onclick = () => { edit.classList.add('hidden'); form.classList.remove('hidden'); input.focus(); cardEditOpen = true; };
+  cancel.onclick = () => { form.classList.add('hidden'); edit.classList.remove('hidden'); cardEditOpen = false; };
   apply.onclick = async () => {
     apply.disabled = true; apply.textContent = '…';
     try {
       const r = await api(`/api/decoder/${dec.id}/frequency`, { method: 'POST', body: { frequency: input.value, restart: true } });
-      freqEditOpen = false;
+      cardEditOpen = false;
       await poll();
       if (r.restartError) alert('Frequency written but restart failed: ' + r.restartError);
     } catch (e) {
@@ -97,6 +98,92 @@ function freqRow(dec) {
     }
   };
   return row;
+}
+
+function deviceRow(dec) {
+  const row = el('div', 'freqrow');
+  const dv = dec.device;
+
+  if (!dec.configFile) { row.append(el('span', 'fmuted', 'SDR device — set a config file in Settings')); return row; }
+  if (dv && dv.error) { row.append(el('span', 'fmuted', 'SDR device — ' + dv.error)); return row; }
+
+  const cur = dv ? String(dv.value) : '0';
+  const meta = rtlDevices.find((x) => String(x.index) === cur || x.serial === cur);
+  const label = el('span', 'fval');
+  label.append(el('b', null, 'SDR #' + cur));
+  const note = [];
+  if (dv && !dv.explicit) note.push('default');
+  if (meta && (meta.product || meta.vendor)) note.push(meta.product || meta.vendor);
+  if (meta && meta.serial) note.push('SN ' + meta.serial);
+  if (note.length) label.append(el('span', 'fmeth', ` (${note.join(', ')})`));
+  row.append(label);
+
+  const edit = el('button', 'btn sm ghost', 'Change');
+  row.append(edit);
+
+  const form = el('span', 'feditor hidden');
+  let inputEl;
+  if (rtlDevices.length) {
+    inputEl = el('select');
+    rtlDevices.forEach((x) => {
+      const o = el('option', null, `#${x.index}  ${(x.product || x.vendor || '').trim()}${x.serial ? '  SN ' + x.serial : ''}`);
+      o.value = String(x.index);
+      inputEl.append(o);
+    });
+    if (![...inputEl.options].some((o) => o.value === cur)) {
+      const o = el('option', null, cur + '  (current)'); o.value = cur; inputEl.append(o);
+    }
+    inputEl.value = cur;
+  } else {
+    inputEl = el('input'); inputEl.value = cur; inputEl.size = 6;
+  }
+  const apply = el('button', 'btn sm primary', 'Set + restart');
+  const cancel = el('button', 'btn sm ghost', 'Cancel');
+  form.append(inputEl, apply, cancel);
+  row.append(form);
+
+  edit.onclick = () => { edit.classList.add('hidden'); form.classList.remove('hidden'); inputEl.focus(); cardEditOpen = true; };
+  cancel.onclick = () => { form.classList.add('hidden'); edit.classList.remove('hidden'); cardEditOpen = false; };
+  apply.onclick = async () => {
+    apply.disabled = true; apply.textContent = '…';
+    try {
+      const r = await api(`/api/decoder/${dec.id}/device`, { method: 'POST', body: { device: inputEl.value, restart: true } });
+      cardEditOpen = false;
+      await poll();
+      if (r.restartError) alert('Device written but restart failed: ' + r.restartError);
+    } catch (e) {
+      alert('device change failed: ' + e.message);
+      apply.disabled = false; apply.textContent = 'Set + restart';
+    }
+  };
+  return row;
+}
+
+function renderRtl(rtlState, state) {
+  const box = $('#rtlList');
+  box.innerHTML = '';
+  if (!rtlState) { box.textContent = 'looking…'; return; }
+  if (!rtlState.available) {
+    box.textContent = rtlState.error || 'rtl_test not available on this host';
+    return;
+  }
+  if (!rtlState.devices.length) { box.textContent = 'no RTL-SDR devices found'; return; }
+
+  if (rtlState.duplicateSerials) {
+    box.append(el('div', 'rtlwarn', '⚠ Two or more dongles share a serial number — device order can shift on reboot/replug. Set unique serials with rtl_eeprom so "-d <serial>" is stable.'));
+  }
+
+  const tbl = el('div', 'rtltbl');
+  rtlState.devices.forEach((d) => {
+    const rowEl = el('div', 'rtlrow');
+    rowEl.append(el('span', 'rtlidx', '#' + d.index));
+    rowEl.append(el('span', 'rtlname', [d.vendor, d.product].filter(Boolean).join(' ') || 'RTL-SDR'));
+    rowEl.append(el('span', 'rtlsn', d.serial ? 'SN ' + d.serial : ''));
+    const used = (d.usedBy || []);
+    rowEl.append(el('span', 'rtluse' + (used.length ? '' : ' free'), used.length ? '→ ' + used.join(', ') : 'unassigned'));
+    tbl.append(rowEl);
+  });
+  box.append(tbl);
 }
 
 function decoderCard(dec) {
@@ -116,6 +203,7 @@ function decoderCard(dec) {
   card.append(head);
 
   card.append(freqRow(dec));
+  card.append(deviceRow(dec));
 
   const pr = dec.process;
   const stats = el('div', 'pstats');
@@ -182,6 +270,9 @@ function renderDashboard(state) {
   $('#overall').querySelector('.dot').className = 'dot ' + worst;
   $('#overallText').textContent = state.decoders.length ? (HEALTH_LABEL[worst] || worst) : 'no decoders';
 
+  renderRtl(state.rtl, state);
+  rtlDevices = (state.rtl && state.rtl.devices) || [];
+
   const box = $('#decoders');
   if (!state.decoders.length) {
     box.innerHTML = '';
@@ -190,15 +281,16 @@ function renderDashboard(state) {
     const wanted = state.decoders.map((d) => d.id);
     $$('.proc', box).forEach((c) => { if (!wanted.includes(c.dataset.id)) c.remove(); });
 
+    const rtlSig = JSON.stringify(rtlDevices.map((x) => [x.index, x.serial]));
     state.decoders.forEach((d, i) => {
-      // rebuild a card only when its structure / status / pages / frequency change;
+      // rebuild a card only when its structure / status / pages / freq / device change;
       // live numbers refresh in place; a card being edited is left alone
       const sig = JSON.stringify([
-        d.label, d.health, d.pm2Ref, d.process.status, d.frequency, d.configFile,
+        d.label, d.health, d.pm2Ref, d.process.status, d.frequency, d.device, d.configFile, rtlSig,
         d.pagesError, d.pages.map((x) => x.ts + '|' + x.message),
       ]);
       let card = $(`.proc[data-id="${d.id}"]`, box);
-      const editingHere = freqEditOpen && card && $('.feditor:not(.hidden)', card);
+      const editingHere = cardEditOpen && card && $('.feditor:not(.hidden)', card);
 
       if (!card || (card.dataset.sig !== sig && !editingHere)) {
         const fresh = decoderCard(d);

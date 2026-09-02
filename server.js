@@ -10,6 +10,7 @@ const { tailBytes } = require('./lib/logtail');
 const { recentPages, stripAnsi } = require('./lib/parse');
 const { buildFrame, sendToReader } = require('./lib/manual');
 const readersh = require('./lib/readersh');
+const rtl = require('./lib/rtl');
 const system = require('./lib/system');
 
 // ---------------------------------------------------------------- config -----
@@ -112,9 +113,12 @@ async function buildState() {
     const lastPageAt = pages.length ? pages[0].ts : null;
 
     let frequency = null;
+    let device = null;
     if (d.configFile) {
       try { frequency = await readersh.readFrequency(d.configFile); }
       catch (e) { frequency = { error: e.message }; }
+      try { device = await readersh.readDevice(d.configFile); }
+      catch (e) { device = { error: e.message }; }
     }
 
     decoders.push({
@@ -128,6 +132,7 @@ async function buildState() {
       logPath, // what pages were actually read from
       logInfo, // set only when no pages were found — for debugging an empty feed
       frequency, // { token, pretty, method } | { error } | null
+      device, // { value, explicit } | { error } | null  (rtl_fm -d)
       process: st,
       health: d.pm2Ref ? healthOf(st.status, lastPageAt, d.staleMinutes) : 'unconfigured',
       lastPageAt,
@@ -136,10 +141,23 @@ async function buildState() {
     });
   }
 
+  // RTL-SDR devices, annotated with which decoder claims each one
+  const rtlList = await rtl.listDevices(c.rtlTestBin, 4000);
+  for (const dev of rtlList.devices || []) {
+    const users = decoders.filter((d) => d.device && !d.device.error &&
+      (d.device.value === String(dev.index) || (dev.serial && d.device.value === dev.serial)));
+    dev.usedBy = users.map((d) => d.label);
+  }
+  if (rtlList.devices && rtlList.devices.length) {
+    const serials = rtlList.devices.map((d) => d.serial).filter(Boolean);
+    rtlList.duplicateSerials = serials.length !== new Set(serials).size;
+  }
+
   return {
     now: Date.now(),
     host: system.hostInfo(),
-    sdr: await system.sdrDongles(),
+    rtl: rtlList,
+    sdr: (rtlList.devices || []).length ? undefined : await system.sdrDongles(), // lsusb fallback
     pm2Error,
     decoders,
   };
@@ -221,6 +239,32 @@ const server = http.createServer(async (req, res) => {
         catch (e) { return send(res, 200, { ok: true, ...result, restarted: false, restartError: e.message }); }
       }
       return send(res, 200, { ok: true, ...result, restarted });
+    }
+
+    // --- change which RTL-SDR a decoder uses (edits "-d" in its reader.sh) ---
+    const dm = p.match(/^\/api\/decoder\/([^/]+)\/device$/);
+    if (dm && method === 'POST') {
+      const d = findDecoder(dm[1]);
+      if (!d) return send(res, 404, { error: 'unknown decoder' });
+      if (!d.configFile) return send(res, 400, { error: 'no config file set for this decoder (Settings)' });
+      const body = await readBody(req);
+      let result;
+      try {
+        result = await readersh.writeDevice(d.configFile, body.device);
+      } catch (e) {
+        return send(res, 400, { error: e.message });
+      }
+      let restarted = false;
+      if (body.restart !== false && d.pm2Ref && !result.unchanged) {
+        try { await pm2.control(cfg.get().pm2Bin, 'restart', d.pm2Ref); restarted = true; }
+        catch (e) { return send(res, 200, { ok: true, ...result, restarted: false, restartError: e.message }); }
+      }
+      return send(res, 200, { ok: true, ...result, restarted });
+    }
+
+    // --- list RTL-SDR devices ---
+    if (p === '/api/rtl/devices' && method === 'GET') {
+      return send(res, 200, await rtl.listDevices(cfg.get().rtlTestBin, 4000));
     }
 
     // --- test message: address + message, always POCSAG512 / F3 ---
