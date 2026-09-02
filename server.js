@@ -262,9 +262,9 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { ok: true, ...result, restarted });
     }
 
-    // --- list RTL-SDR devices ---
+    // --- list RTL-SDR devices (force a fresh probe) ---
     if (p === '/api/rtl/devices' && method === 'GET') {
-      return send(res, 200, await rtl.listDevices(cfg.get().rtlTestBin, 4000));
+      return send(res, 200, await rtl.listDevices(cfg.get().rtlTestBin, 4000, { fresh: true }));
     }
 
     // --- test message: address + message, always POCSAG512 / F3 ---

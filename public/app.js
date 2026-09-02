@@ -369,6 +369,15 @@ $('#testForm').addEventListener('submit', async (e) => {
   }
 });
 
+$('#rtlRescan').addEventListener('click', async (e) => {
+  const btn = e.target; btn.disabled = true; btn.textContent = '…';
+  try {
+    await api('/api/rtl/devices'); // forces a fresh probe + refreshes the server cache
+    await poll();                  // re-render with usedBy annotations
+  } catch (err) { $('#rtlList').textContent = 'rescan failed: ' + err.message; }
+  finally { btn.disabled = false; btn.textContent = 'Rescan'; }
+});
+
 // reboot
 $('#rebootBtn').addEventListener('click', async () => {
   if (!confirm('Reboot the whole PC now? Every decoder drops until it comes back.')) return;

@@ -170,6 +170,8 @@ main { max-width: 1180px; margin: 0 auto; padding: 20px; }
 .freqrow input, .freqrow select { padding: 4px 7px; font-size: 12.5px; max-width: 16em; }
 .freqrow input { width: 8.5em; }
 
+.panelHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.panelHead h2 { font-size: 15px; }
 .rtltbl { display: flex; flex-direction: column; gap: 6px; }
 .rtlrow { display: grid; grid-template-columns: 3em 1fr auto auto; gap: 12px; align-items: baseline; font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--line); }
 .rtlrow:last-child { border-bottom: 0; }
