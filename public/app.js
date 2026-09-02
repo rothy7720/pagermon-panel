@@ -145,7 +145,9 @@ function decoderCard(dec) {
     const row = el('div', 'row');
     const rh = el('div', 'rhead');
     rh.append(el('span', pg.tsApprox ? 'approx' : null, (pg.tsApprox ? '~' : '') + fmtTime(pg.ts)));
-    rh.append(el('span', null, `${pg.mode} · ${pg.address} · F${pg.function ?? '?'}`));
+    const bits = [pg.mode, pg.address];
+    if (pg.function != null) bits.push('F' + pg.function);
+    rh.append(el('span', null, bits.join(' · ')));
     row.append(rh);
     row.append(el('div', 'rmsg', pg.message || '(empty)'));
     feed.append(row);
