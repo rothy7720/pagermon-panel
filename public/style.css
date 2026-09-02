@@ -233,11 +233,48 @@ footer { max-width: 1180px; margin: 8px auto 26px; padding: 0 20px; color: var(-
 
 /* -------------------------------------------------------------- mobile -- */
 @media (max-width: 640px) {
-  .topbar { gap: 10px; padding: 10px 14px; }
+  /* topbar: brand + status/reboot on row 1, tabs full-width on row 2 */
+  .topbar { flex-wrap: wrap; gap: 8px 10px; padding: 9px 12px; }
+  .brand { flex: 0 1 auto; min-width: 0; gap: 9px; }
+  .brand .logo { width: 26px; height: 26px; }
+  .brand h1 { font-size: 15px; }
+  .host { display: none; }
+  .topRight { margin-left: auto; gap: 8px; }
+  .topRight .pill { font-size: 11px; padding: 4px 8px; }
+  #rebootBtn { padding: 6px 10px; font-size: 12px; }
   .nav { order: 3; width: 100%; }
-  .tab { flex: 1; }
-  main { padding: 14px; }
+  .tab { flex: 1; padding: 10px 12px; }
+
+  main { padding: 12px; }
+  .view { gap: 14px; }
+  .panel { padding: 14px; }
+
+  /* one decoder per row */
+  .sections { grid-template-columns: 1fr; }
+  .proc.card-standalone .phead { padding: 13px 14px 8px; }
+
+  /* frequency / device editor rows: let the controls wrap instead of overflowing */
+  .freqrow { gap: 8px 10px; }
+  .freqrow .feditor { flex-wrap: wrap; width: 100%; }
+  .freqrow input, .freqrow select { flex: 1 1 8em; max-width: none; font-size: 16px; padding: 8px 10px; }
+  .freqrow .feditor .btn { flex: 1 1 auto; }
+
+  /* bigger touch targets */
+  .btn { padding: 10px 14px; }
+  .btn.sm { padding: 8px 11px; font-size: 12.5px; }
+  .pctl { gap: 6px; }
+
+  /* RTL device rows stack */
+  .rtlrow { grid-template-columns: 2.4em 1fr; row-gap: 2px; }
+  .rtlrow .rtlsn, .rtlrow .rtluse { grid-column: 2; }
+
+  /* forms: 16px inputs stop iOS Safari from zooming on focus */
+  input, select, textarea { font-size: 16px; padding: 9px 11px; }
   .test .testGrid { grid-template-columns: 1fr; }
   .grp .grpTop { grid-template-columns: 1fr; }
-  .procRow { grid-template-columns: 1fr 1fr; }
+  .procRow { grid-template-columns: 1fr; }
+  .saveBar { flex-wrap: wrap; }
+  #view-settings { padding-bottom: 30px; }
+
+  footer { margin: 6px auto 20px; }
 }
