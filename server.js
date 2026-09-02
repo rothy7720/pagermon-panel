@@ -7,7 +7,7 @@ const path = require('path');
 const cfg = require('./lib/config');
 const pm2 = require('./lib/pm2');
 const { tailBytes } = require('./lib/logtail');
-const { recentPages } = require('./lib/parse');
+const { recentPages, stripAnsi } = require('./lib/parse');
 const { buildFrame, sendToReader } = require('./lib/manual');
 const readersh = require('./lib/readersh');
 const system = require('./lib/system');
@@ -102,7 +102,7 @@ async function buildState() {
         let stat = null;
         try { stat = fs.statSync(logPath); } catch (e) { logInfo = { path: logPath, error: e.code || e.message }; }
         if (stat) {
-          const lines = text.split(/\r?\n/).filter((l) => l.trim());
+          const lines = text.split(/\r?\n/).map(stripAnsi).filter((l) => l.trim());
           logInfo = { path: logPath, bytes: stat.size, mtime: stat.mtimeMs, lastLines: lines.slice(-4) };
         }
       }
