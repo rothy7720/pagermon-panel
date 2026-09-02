@@ -255,9 +255,15 @@ function decoderCard(dec) {
 }
 
 function renderDashboard(state) {
-  $('#host').textContent =
-    `${state.host.hostname} · up ${fmtDur(state.host.uptimeSec)} · load ${state.host.loadavg[0]}` +
-    (state.sdr && state.sdr.length ? ` · ${state.sdr.length} SDR` : '');
+  const h = state.host;
+  const host = $('#host');
+  host.textContent = `${h.hostname} · up ${fmtDur(h.uptimeSec)} · load ${h.loadavg[0]}`;
+  if (h.cpuTempC != null) {
+    host.append(' · ');
+    host.append(el('span', 'temp' + (h.cpuTempC >= 85 ? ' hot' : h.cpuTempC >= 75 ? ' warm' : ''),
+      `${h.cpuTempC}°C`));
+  }
+  if (state.sdr && state.sdr.length) host.append(` · ${state.sdr.length} SDR`);
 
   const warn = $('#pm2Warn');
   warn.classList.toggle('hidden', !state.pm2Error);
