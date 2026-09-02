@@ -60,6 +60,12 @@ one's `reader.sh`, reads the frequency + SDR device out of it, and writes a
 `config.json`. Add `--print` to preview without writing, `--force` to overwrite.
 Review the `label` fields afterwards; everything else comes off the box.
 
+PagerMon client scripts are usually all named `reader.sh`, so pm2 points every
+decoder at the same `~/.pm2/logs/reader-out.log` and the panel can't tell their
+pages apart. `node scripts/setup.js --fix-logs` prints the `pm2 delete` /
+`pm2 start` commands to give each one its own `<name>-out.log`; run them, then
+`setup.js --force` again.
+
 If you'd rather do it by hand: `cp config.example.json config.json` and edit, or
 just start the server — a stub `config.json` is written on first run and you fill
 it in from the Settings tab.
