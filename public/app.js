@@ -140,7 +140,17 @@ function decoderCard(dec) {
 
   const feed = el('div', 'feed');
   if (dec.pagesError) feed.append(el('div', 'empty', 'log error: ' + dec.pagesError));
-  else if (!dec.pages.length) feed.append(el('div', 'empty', 'no pages in recent log'));
+  else if (!dec.pages.length) {
+    const e = el('div', 'empty');
+    const li = dec.logInfo;
+    if (!li) e.textContent = 'no pages in recent log';
+    else if (li.error) e.textContent = `log not found: ${li.path} (${li.error})`;
+    else {
+      e.append(el('div', null, `no pages matched in ${li.path} (${fmtBytes(li.bytes)})`));
+      (li.lastLines || []).forEach((l) => e.append(el('div', 'logline', l)));
+    }
+    feed.append(e);
+  }
   else for (const pg of dec.pages) {
     const row = el('div', 'row');
     const rh = el('div', 'rhead');

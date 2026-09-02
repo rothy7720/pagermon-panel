@@ -93,9 +93,19 @@ async function buildState() {
     const logPath = d.logFile || st.outLogPath;
     let pages = [];
     let pagesError = null;
+    let logInfo = null;
     try {
       const text = await tailBytes(logPath, c.logTailBytes);
       pages = recentPages(text, c.pagesPerProcess, { logPattern: c.logPattern });
+      if (!pages.length) {
+        // help debug an empty feed: does the file exist, and what's in it?
+        let stat = null;
+        try { stat = fs.statSync(logPath); } catch (e) { logInfo = { path: logPath, error: e.code || e.message }; }
+        if (stat) {
+          const lines = text.split(/\r?\n/).filter((l) => l.trim());
+          logInfo = { path: logPath, bytes: stat.size, mtime: stat.mtimeMs, lastLines: lines.slice(-4) };
+        }
+      }
     } catch (e) {
       pagesError = e.message || String(e);
     }
@@ -116,6 +126,7 @@ async function buildState() {
       configFile: d.configFile || null,
       logFile: d.logFile || null,
       logPath, // what pages were actually read from
+      logInfo, // set only when no pages were found — for debugging an empty feed
       frequency, // { token, pretty, method } | { error } | null
       process: st,
       health: d.pm2Ref ? healthOf(st.status, lastPageAt, d.staleMinutes) : 'unconfigured',
