@@ -260,8 +260,10 @@ function renderDashboard(state) {
   host.textContent = `${h.hostname} · up ${fmtDur(h.uptimeSec)} · load ${h.loadavg[0]}`;
   if (h.cpuTempC != null) {
     host.append(' · ');
-    host.append(el('span', 'temp' + (h.cpuTempC >= 85 ? ' hot' : h.cpuTempC >= 75 ? ' warm' : ''),
-      `${h.cpuTempC}°C`));
+    const t = el('span', 'temp' + (h.cpuTempC >= 85 ? ' hot' : h.cpuTempC >= 75 ? ' warm' : ''),
+      `${h.cpuTempC}°C`);
+    if (h.cpuTempSource) t.title = 'CPU temp source: ' + h.cpuTempSource;
+    host.append(t);
   }
   if (state.sdr && state.sdr.length) host.append(` · ${state.sdr.length} SDR`);
 
