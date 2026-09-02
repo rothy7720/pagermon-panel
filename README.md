@@ -51,9 +51,18 @@ longer than its configured minutes.
 
 ```bash
 git clone <this> pagermon-panel && cd pagermon-panel
-cp config.example.json config.json      # or just start it — a stub is written on first run
-node server.js                          # visit http://<box-ip>:8080, then use the Settings tab
+node scripts/setup.js       # generates config.json from what pm2 is running
+node server.js              # visit http://<box-ip>:8080
 ```
+
+`scripts/setup.js` scans `pm2 jlist` for PagerMon client processes, finds each
+one's `reader.sh`, reads the frequency + SDR device out of it, and writes a
+`config.json`. Add `--print` to preview without writing, `--force` to overwrite.
+Review the `label` fields afterwards; everything else comes off the box.
+
+If you'd rather do it by hand: `cp config.example.json config.json` and edit, or
+just start the server — a stub `config.json` is written on first run and you fill
+it in from the Settings tab.
 
 Then run it under pm2 like your decoders:
 

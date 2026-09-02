@@ -9,6 +9,14 @@ const stateFile = path.join(__dirname, 'fake-pm2-state.json');
 const logDir = path.join(__dirname, 'logs');
 fs.mkdirSync(logDir, { recursive: true });
 
+const cwds = {
+  'pagermon-eas1': path.join(__dirname),
+  'pagermon-eas2': path.join(__dirname),
+};
+const scripts = {
+  'pagermon-eas1': path.join(__dirname, 'reader-eas1.sh'),
+  'pagermon-eas2': path.join(__dirname, 'reader-eas2.sh'),
+};
 const defaults = {
   'pagermon-eas1': { status: 'online' },
   'pagermon-eas2': { status: 'stopped' },
@@ -30,7 +38,10 @@ if (cmd === 'jlist') {
       status: s.status,
       restart_time: 2,
       unstable_restarts: 0,
-      pm_uptime: now - 3600_000 * (i + 1),
+      pm_uptime: now - 3600000 * (i + 1),
+      pm_cwd: cwds[n] || __dirname,
+      pm_exec_path: scripts[n] || path.join(__dirname, 'reader.sh'),
+      exec_interpreter: 'bash',
       pm_out_log_path: path.join(logDir, `${n}-out.log`),
       pm_err_log_path: path.join(logDir, `${n}-err.log`),
     },
