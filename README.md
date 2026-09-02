@@ -47,44 +47,48 @@ decoding). The panel's "is this actually hearing anything" signal is the
 **time-since-last-page** light — it goes orange once a decoder has been silent
 longer than its configured minutes.
 
-## Setup (on the Ubuntu box)
+## Deploy to a decoder site
+
+Run everything **as the user that owns the pm2 daemon** (the one your decoders
+already run under). Requires Node 12+ and the decoders already running in pm2.
 
 ```bash
-git clone <this> pagermon-panel && cd pagermon-panel
-node scripts/setup.js       # generates config.json from what pm2 is running
-node server.js              # visit http://<box-ip>:8080
-```
+# 1. get the code
+git clone https://github.com/rothy7720/pagermon-panel.git ~/pagermon-panel
+cd ~/pagermon-panel
 
-`scripts/setup.js` scans `pm2 jlist` for PagerMon client processes, finds each
-one's `reader.sh`, reads the frequency + SDR device out of it, and writes a
-`config.json`. Add `--print` to preview without writing, `--force` to overwrite.
-Review the `label` fields afterwards; everything else comes off the box.
+# 2. if the decoders share one pm2 log, split them (prints commands — run them,
+#    it's a brief restart per decoder), then continue
+node scripts/setup.js --fix-logs
 
-PagerMon client scripts are usually all named `reader.sh`, so pm2 points every
-decoder at the same `~/.pm2/logs/reader-out.log` and the panel can't tell their
-pages apart. `node scripts/setup.js --fix-logs` prints the `pm2 delete` /
-`pm2 start` commands to give each one its own `<name>-out.log`; run them, then
-`setup.js --force` again.
+# 3. generate config.json from what pm2 is running
+node scripts/setup.js --force
 
-If you'd rather do it by hand: `cp config.example.json config.json` and edit, or
-just start the server — a stub `config.json` is written on first run and you fill
-it in from the Settings tab.
+# 4. let the panel edit the decoders' reader.sh (frequency / dongle)
+sudo chown -R "$USER" ~/pagermon
 
-Then run it under pm2 like your decoders:
-
-```bash
+# 5. eyeball it, then make it permanent
+node server.js                              # http://<box-ip>:8080  — Ctrl-C when happy
 pm2 start ecosystem.config.js && pm2 save
-```
 
-Run it **as the same user that owns your pm2 daemon** — then pm2 control needs no
-sudo. Only **Reboot** needs root; add a sudoers drop-in:
-
-```bash
-echo 'pager ALL=(root) NOPASSWD: /usr/sbin/reboot' | sudo tee /etc/sudoers.d/pagermon-panel
+# 6. enable the Reboot button
+echo "$USER ALL=(root) NOPASSWD: /usr/sbin/reboot" | sudo tee /etc/sudoers.d/pagermon-panel
 sudo chmod 440 /etc/sudoers.d/pagermon-panel
 ```
 
-(replace `pager` with the real user; check the path with `which reboot`).
+Then open `http://<box-ip>:8080` and rename the decoder **labels** in Settings
+(they default to the pm2 process name).
+
+**What the setup script does:** `scripts/setup.js` scans `pm2 jlist` for PagerMon
+client processes, finds each one's `reader.sh`, reads the frequency + SDR device
+out of it, and writes `config.json`. `--print` previews without writing, `--force`
+overwrites, `--fix-logs` prints the pm2 commands to give each decoder its own
+`<name>-out.log` (PagerMon client scripts are all named `reader.sh`, so pm2 points
+them at one shared `reader-out.log` and the panel can't separate their pages).
+
+To do it by hand instead: `cp config.example.json config.json` and edit it, or
+just start the server — a stub `config.json` is written on first run and you fill
+it in from the Settings tab.
 
 ## config.json
 
