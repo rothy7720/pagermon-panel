@@ -19,9 +19,11 @@ This has nothing to do with the PagerMon server. It only watches and controls th
 - **Change a decoder's frequency** right from its card — edits the `-f` value (or
   a `FREQ=` line) in that decoder's `reader.sh`, keeps a `.bak`, and restarts the
   process so it takes effect.
-- **Host strip** — hostname, uptime, load, RTL-SDR count, and **CPU temperature**
-  when the box exposes one (`/sys/class/thermal`, Linux only) — amber over 75 °C,
-  red over 85 °C.
+- **Host strip** — the page title and heading are the box's **hostname**; the
+  sub-line shows the panel version, uptime, load, RTL-SDR count, and **CPU
+  temperature** when the box exposes one (`coretemp`/`k10temp` via
+  `/sys/class/hwmon`, else the thermal zone; Linux only) — amber over 75 °C, red
+  over 85 °C.
 - **RTL-SDR devices** — lists every dongle `rtl_test` sees (index, model, serial)
   and which decoder is using each. Pick a decoder's dongle from its card (edits
   the `-d` value in `reader.sh` and restarts). Warns if two dongles share a

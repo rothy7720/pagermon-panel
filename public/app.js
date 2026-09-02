@@ -256,8 +256,15 @@ function decoderCard(dec) {
 
 function renderDashboard(state) {
   const h = state.host;
+  // page title + big heading = the box's hostname; the sub-line = panel name/version
+  if (h.hostname) {
+    document.title = h.hostname;
+    const h1 = $('.brand h1');
+    if (h1.textContent !== h.hostname) h1.textContent = h.hostname;
+  }
   const host = $('#host');
-  host.textContent = `${h.hostname} · up ${fmtDur(h.uptimeSec)} · load ${h.loadavg[0]}`;
+  host.textContent =
+    `PagerMon Panel${state.version ? ' (v' + state.version + ')' : ''} · up ${fmtDur(h.uptimeSec)} · load ${h.loadavg[0]}`;
   if (h.cpuTempC != null) {
     host.append(' · ');
     const t = el('span', 'temp' + (h.cpuTempC >= 85 ? ' hot' : h.cpuTempC >= 75 ? ' warm' : ''),

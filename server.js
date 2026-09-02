@@ -13,6 +13,9 @@ const readersh = require('./lib/readersh');
 const rtl = require('./lib/rtl');
 const system = require('./lib/system');
 
+let VERSION = '';
+try { VERSION = require('./package.json').version || ''; } catch (e) {}
+
 // ---------------------------------------------------------------- config -----
 const CONFIG_PATH = process.argv[2] || process.env.PANEL_CONFIG || path.join(__dirname, 'config.json');
 try {
@@ -155,6 +158,7 @@ async function buildState() {
 
   return {
     now: Date.now(),
+    version: VERSION,
     host: system.hostInfo(),
     rtl: rtlList,
     sdr: (rtlList.devices || []).length ? undefined : await system.sdrDongles(), // lsusb fallback
